@@ -8,6 +8,8 @@ so a typo in the program cannot silently agree with itself.
 """
 
 import hashlib
+import os
+import stat
 import subprocess
 import sys
 import unittest
@@ -56,6 +58,24 @@ class FortuneCookieGateTests(unittest.TestCase):
         text = OUTPUT_FILE.read_text(encoding="utf-8")
         self.assertNotIn("\n", text)
         self.assertNotIn("\r", text)
+
+    def test_output_is_readable_by_the_graders_collector(self):
+        # The grader collects outputs as another user, so the program
+        # must leave /output at 0755 and entry.txt at 0644. Start from
+        # restrictive modes (as e.g. a tempfile-created file would
+        # have) so the test proves the program itself fixes them,
+        # whatever modes were there before it ran.
+        OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+        if OUTPUT_FILE.exists():
+            os.chmod(OUTPUT_FILE, 0o600)
+        os.chmod(OUTPUT_DIR, 0o700)
+        run_program()
+        self.assertEqual(
+            stat.S_IMODE(os.stat(OUTPUT_DIR).st_mode), 0o755
+        )
+        self.assertEqual(
+            stat.S_IMODE(os.stat(OUTPUT_FILE).st_mode), 0o644
+        )
 
     def test_two_consecutive_runs_are_byte_identical(self):
         run_program()

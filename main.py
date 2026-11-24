@@ -21,6 +21,10 @@ def main():
     os.makedirs(OUTPUT_DIR, exist_ok=True)
     with open(OUTPUT_PATH, "wb") as fh:
         fh.write(FORTUNE.encode("utf-8"))
+    # The grader collects outputs as another user than the one the
+    # program runs as: leave the folder and the file readable by all.
+    os.chmod(OUTPUT_DIR, 0o755)
+    os.chmod(OUTPUT_PATH, 0o644)
 
 
 if __name__ == "__main__":
